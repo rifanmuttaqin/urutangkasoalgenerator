@@ -1,0 +1,737 @@
+     1→
+     2→                <!DOCTYPE html>
+     3→                <html lang="en">
+     4→                        <head>
+     5→                                <meta charset="UTF-8">
+     6→                                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     7→                                <style>
+     8→                                        body {
+     9→                                                background-color: white; /* Ensure the iframe has a white background */
+    10→                                        }
+    11→                                </style>
+    12→                                <script>
+    13→                                        var Z_CDN_WHITELIST = [
+    14→                                                'cdn.jsdelivr.net',
+    15→                                                'cdnjs.cloudflare.com',
+    16→                                                'cdn.tailwindcss.com',
+    17→                                                'unpkg.com',
+    18→                                                'fonts.googleapis.com',
+    19→                                                'd3js.org',
+    20→                                                'cdn.babylonjs.com',
+    21→                                                'html2canvas.hertzen.com',
+    22→                                                'code.jquery.com',
+    23→                                                'cdn.datatables.net',
+    24→                                                'kit.fontawesome.com',
+    25→                                                'code.createjs.com',
+    26→                                                'cdn.plot.ly',
+    27→                                                'fonts.gstatic.com',
+    28→                                                'www.rgraph.net',
+    29→                                                'api.mapbox.com',
+    30→                                                'polyfill.io',
+    31→                                                'cdn.quilljs.com',
+    32→                                                'picsum.photos',
+    33→                                                'esm.sh'
+    34→                                        ];
+    35→
+    36→                                        function z_isUrlInWhitelist(url) {
+    37→                                                if (!url || typeof url !== 'string') {
+    38→                                                        return false;
+    39→                                                }
+    40→                                                try {
+    41→                                                        const urlObj = new URL(url);
+    42→                                                        const hostname = urlObj.hostname;
+    43→                                                        return Z_CDN_WHITELIST.some(domain => hostname === domain);
+    44→                                                } catch (e) {
+    45→                                                        return false;
+    46→                                                }
+    47→                                        }
+    48→
+    49→                                                function z_proxyCdnUrl(url) {
+    50→                                                if (!url || !url.startsWith('http')) {
+    51→                                                        return url;
+    52→                                                }
+    53→                                                        if (!z_isUrlInWhitelist(url)) {
+    54→                                                        return url;
+    55→                                                }
+    56→                                                if (!url.startsWith('https://artifacts-cdn.chatglm.site/')) {
+    57→                                                        return 'https://artifacts-cdn.chatglm.site/' + url;
+    58→                                                }
+    59→                                                return url;
+    60→                                        }
+    61→                                        
+    62→                                        // 增强版外部链接拦截 - 适合放在模板字符串中
+    63→                                        document.addEventListener('click', function (ev) {
+    64→                                                try {
+    65→                                                        const anchor = ev.target?.closest?.('a[href]') || null;
+    66→                                                        if (!anchor) return;
+    67→
+    68→                                                        let href = anchor.getAttribute('href')?.trim() || '';
+    69→                                                        if (!href) return;
+    70→
+    71→                                                        if (href.startsWith('javascript:')) return;
+    72→
+    73→                                                        // 新需求：href="#" 的链接完全阻止跳转和任何行为
+    74→                                                        if (href === '#') {
+    75→                                                                ev.preventDefault();
+    76→                                                                return;
+    77→                                                        }
+    78→
+    79→                                                        // 处理其他内部锚点（如 #about、#contact 等）
+    80→                                                        if (href.startsWith('#')) {
+    81→                                                                const rawId = href.slice(1);
+    82→                                                                if (!rawId) return;
+    83→
+    84→                                                                const id = decodeURIComponent(rawId);
+    85→                                                                const target = 
+    86→                                                                        document.getElementById(id) ||
+    87→                                                                        document.querySelector('a[name="' + id.replace(/"/g, '\"') + '"]') ||
+    88→                                                                        document.querySelector('[name="' + id.replace(/"/g, '\"') + '"]');
+    89→
+    90→                                                                if (target && target.scrollIntoView) {
+    91→                                                                        ev.preventDefault();
+    92→                                                                        try {
+    93→                                                                                history.pushState(null, '', href);
+    94→                                                                        } catch (e) {}
+    95→                                                                        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    96→                                                                }
+    97→                                                                return;
+    98→                                                        }
+    99→
+   100→                                                        // 处理外部链接
+   101→                                                        let url;
+   102→                                                        try {
+   103→                                                                url = new URL(href, window.location.href);
+   104→                                                        } catch (e) {
+   105→                                                                return;
+   106→                                                        }
+   107→
+   108→                                                        if (url.protocol !== 'http:' && url.protocol !== 'https:') return;
+   109→
+   110→                                                        const isExternal = url.hostname !== window.location.hostname;
+   111→
+   112→                                                        if (isExternal || anchor.getAttribute('target') === '_blank') {
+   113→                                                                ev.preventDefault();
+   114→                                                                window.open(url.toString(), '_blank', 'noopener,noreferrer');
+   115→                                                        }
+   116→
+   117→                                                } catch (e) {
+   118→                                                        // 出错时不阻止默认行为
+   119→                                                }
+   120→                                        }, true);
+   121→
+   122→                                        // 1. 暴力清除函数：从 DOM 层面抹除 onclick 属性
+   123→                                        var Z_removeInlineOnclick = function () {
+   124→                                                // 专门锁定 href="#" 且带有 onclick 的 a 标签
+   125→                                                const targetedLinks = document.querySelectorAll('a[href="#"][onclick]');
+   126→                                                for (let i = 0; i < targetedLinks.length; i++) {
+   127→                                                        targetedLinks[i].removeAttribute('onclick');
+   128→                                                        targetedLinks[i].onclick = null; // 确保 JS 层的赋值也被清理
+   129→                                                }
+   130→                                        };
+   131→                                        // 3. 动态监测：防止页面通过异步加载重新生成带 onclick 的元素
+   132→                                        var z_observer = new MutationObserver(function () {
+   133→                                                Z_removeInlineOnclick();
+   134→                                        });
+   135→
+   136→                                        z_observer.observe(document.documentElement, {
+   137→                                                childList: true,
+   138→                                                subtree: true,
+   139→                                                attributes: true,
+   140→                                                attributeFilter: ['onclick']
+   141→                                        });
+   142→
+   143→                                        // 4. 初始化执行一次
+   144→                                        Z_removeInlineOnclick();
+   145→
+   146→                                        const Z_rawCreateElement = document.createElement;
+   147→
+   148→                                        document.createElement = function (tagName, ...args) {
+   149→                                                const el = Z_rawCreateElement.call(this, tagName, ...args);
+   150→
+   151→                                                if (tagName.toLowerCase() === 'script') {
+   152→                                                        const rawSetAttribute = el.setAttribute;
+   153→                                                        const rawGetAttribute = el.getAttribute;
+   154→                                                        let srcValue = '';
+   155→                                                        
+   156→                                                        el.setAttribute = function (name, value) {
+   157→                                                                if (name === 'src' && typeof value === 'string') {
+   158→                                                                        value = z_proxyCdnUrl(value);
+   159→                                                                        srcValue = value;
+   160→                                                                }
+   161→                                                                return rawSetAttribute.call(this, name, value);
+   162→                                                        };
+   163→
+   164→                                                        Object.defineProperty(el, 'src', {
+   165→                                                                get: function() {
+   166→                                                                        return srcValue || rawGetAttribute.call(this, 'src') || '';
+   167→                                                                },
+   168→                                                                set: function(value) {
+   169→                                                                        if (typeof value === 'string') {
+   170→                                                                                srcValue = z_proxyCdnUrl(value);
+   171→                                                                                rawSetAttribute.call(this, 'src', srcValue);
+   172→                                                                        } else {
+   173→                                                                                srcValue = value;
+   174→                                                                        }
+   175→                                                                },
+   176→                                                                configurable: true,
+   177→                                                                enumerable: true
+   178→                                                        });
+   179→                                                }
+   180→
+   181→                                                if (tagName.toLowerCase() === 'link') {
+   182→                                                        const rawSetAttribute = el.setAttribute;
+   183→                                                        const rawGetAttribute = el.getAttribute;
+   184→                                                        let hrefValue = '';
+   185→                                                        
+   186→                                                        el.setAttribute = function (name, value) {
+   187→                                                                if (name === 'href' && typeof value === 'string') {
+   188→                                                                        value = z_proxyCdnUrl(value);
+   189→                                                                        hrefValue = value;
+   190→                                                                }
+   191→                                                                return rawSetAttribute.call(this, name, value);
+   192→                                                        };
+   193→
+   194→                                                        Object.defineProperty(el, 'href', {
+   195→                                                                get: function() {
+   196→                                                                        return hrefValue || rawGetAttribute.call(this, 'href') || '';
+   197→                                                                },
+   198→                                                                set: function(value) {
+   199→                                                                        if (typeof value === 'string') {
+   200→                                                                                hrefValue = z_proxyCdnUrl(value);
+   201→                                                                                rawSetAttribute.call(this, 'href', hrefValue);
+   202→                                                                        } else {
+   203→                                                                                hrefValue = value;
+   204→                                                                        }
+   205→                                                                },
+   206→                                                                configurable: true,
+   207→                                                                enumerable: true
+   208→                                                        });
+   209→                                                }
+   210→
+   211→                                                return el;
+   212→                                        };
+   213→
+   214→                                        const Z_OriginalXMLHttpRequest = window.XMLHttpRequest;
+   215→                                        window.XMLHttpRequest = function (...args) {
+   216→                                                const xhr = new Z_OriginalXMLHttpRequest(...args);
+   217→                                                const rawOpen = xhr.open;
+   218→
+   219→                                                xhr.open = function (method, url, ...rest) {
+   220→                                                        if (typeof url === 'string') {
+   221→                                                                const methodUpper = (method || '').toUpperCase();
+   222→                                                                if (methodUpper === 'GET' && z_isUrlInWhitelist(url)) {
+   223→                                                                        url = z_proxyCdnUrl(url);
+   224→                                                                }
+   225→                                                        }
+   226→                                                        return rawOpen.call(this, method, url, ...rest);
+   227→                                                };
+   228→
+   229→                                                return xhr;
+   230→                                        };
+   231→
+   232→                                        window.XMLHttpRequest.prototype = Z_OriginalXMLHttpRequest.prototype;
+   233→                                        Object.setPrototypeOf(window.XMLHttpRequest, Z_OriginalXMLHttpRequest);
+   234→
+   235→                                        const z_originalFetch = window.fetch;
+   236→                                        window.fetch = async function (...args) {
+   237→                                                if (args.length > 0) {
+   238→                                                        let url = '';
+   239→                                                        let method = 'GET';
+   240→                                                        
+   241→                                                        if (typeof args[0] === 'string') {
+   242→                                                                url = args[0];
+   243→                                                                if (args[1] && args[1].method) {
+   244→                                                                        method = args[1].method.toUpperCase();
+   245→                                                                }
+   246→                                                                if (method === 'GET' && z_isUrlInWhitelist(url)) {
+   247→                                                                        args[0] = z_proxyCdnUrl(url);
+   248→                                                                }
+   249→                                                        } else if (args[0] instanceof Request) {
+   250→                                                                const originalUrl = args[0].url;
+   251→                                                                method = (args[0].method || 'GET').toUpperCase();
+   252→                                                                if (method === 'GET' && z_isUrlInWhitelist(originalUrl)) {
+   253→                                                                        const proxiedUrl = z_proxyCdnUrl(originalUrl);
+   254→                                                                        if (proxiedUrl !== originalUrl) {
+   255→                                                                                args[0] = new Request(proxiedUrl, args[0]);
+   256→                                                                        }
+   257→                                                                }
+   258→                                                        }
+   259→                                                }
+   260→                                                return z_originalFetch.apply(this, args);
+   261→                                        };
+   262→                                </script>
+   263→                        </head>
+   264→                        <body>
+   265→                                <html lang="id"><head>
+   266→<meta charset="UTF-8">
+   267→<meta name="viewport" content="width=device-width, initial-scale=1">
+   268→<title>Kereta Angka — Latihan Mengurutkan Angka (TK A)</title>
+   269→<link rel="preconnect" href="https://artifacts-cdn.chatglm.site/https://fonts.googleapis.com">
+   270→<link rel="preconnect" href="https://artifacts-cdn.chatglm.site/https://fonts.gstatic.com" crossorigin="">
+   271→<link href="https://artifacts-cdn.chatglm.site/https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&amp;display=swap" rel="stylesheet">
+   272→<style>
+   273→  :root{
+   274→    --tinta:#4A3728;   /* coklat tua hangat, warna garis utama */
+   275→    --kertas:#FFFDF7;
+   276→    --krem:#FFF3D6;
+   277→    --koral:#F26D5B;
+   278→    --oranye:#F5A03C;
+   279→    --kuning:#FFD34D;
+   280→    --hijau:#7BC950;
+   281→    --teal:#43BFAE;
+   282→    --biru:#5BA8D9;
+   283→    --pink:#F78FB0;
+   284→  }
+   285→  *{ box-sizing:border-box; margin:0; padding:0;
+   286→     -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+   287→  body{
+   288→    font-family:'Baloo 2','Segoe UI',sans-serif;
+   289→    color:var(--tinta);
+   290→    background-color:#CDE7F0;
+   291→    /* pola awan halus, hanya di layar */
+   292→    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='220'%3E%3Cg fill='%23ffffff' opacity='.45'%3E%3Cellipse cx='62' cy='58' rx='46' ry='15'/%3E%3Cellipse cx='94' cy='50' rx='28' ry='12'/%3E%3Cellipse cx='228' cy='168' rx='50' ry='16'/%3E%3Cellipse cx='258' cy='160' rx='26' ry='11'/%3E%3C/g%3E%3C/svg%3E");
+   293→    overflow-x:auto;
+   294→  }
+   295→
+   296→  /* ============ BILAH ALAT (tidak ikut tercetak) ============ */
+   297→  .toolbar{
+   298→    position:sticky; top:0; z-index:100;
+   299→    display:flex; justify-content:space-between; align-items:center;
+   300→    gap:14px; flex-wrap:wrap;
+   301→    padding:10px 20px;
+   302→    background:rgba(255,253,247,.94);
+   303→    backdrop-filter:blur(6px);
+   304→    border-bottom:1.5px solid rgba(74,55,40,.3);
+   305→  }
+   306→  .brand{ display:flex; align-items:center; gap:10px }
+   307→  .brand .loko-slot{ width:44px }
+   308→  .brand b{ display:block; font-size:19px; font-weight:800; line-height:1.1 }
+   309→  .brand small{ font-size:12.5px; font-weight:600; color:rgba(74,55,40,.72) }
+   310→  .aksi{ display:flex; align-items:center; gap:10px; flex-wrap:wrap }
+   311→  button{
+   312→    font-family:inherit; font-weight:700; font-size:14.5px; color:var(--tinta);
+   313→    display:inline-flex; align-items:center; gap:7px;
+   314→    padding:9px 16px; border-radius:13px;
+   315→    border:2px solid var(--tinta); background:#fff;
+   316→    box-shadow:0 3px 0 var(--tinta); cursor:pointer;
+   317→    transition:transform .12s, box-shadow .12s, background .2s;
+   318→  }
+   319→  button:hover{ transform:translateY(-1px); box-shadow:0 4px 0 var(--tinta) }
+   320→  button:active{ transform:translateY(2px); box-shadow:0 1px 0 var(--tinta) }
+   321→  button svg{ width:17px; height:17px; flex:0 0 auto }
+   322→  #btnCetak{ background:var(--koral); color:#FFFDF7 }
+   323→  #btnKunci.on{ background:var(--kuning) }
+   324→  .toast{
+   325→    font-size:13px; font-weight:700; color:#fff; background:#37A34A;
+   326→    padding:6px 13px; border-radius:999px; opacity:0;
+   327→    transform:translateY(4px); transition:.3s; pointer-events:none;
+   328→  }
+   329→  .toast.show{ opacity:1; transform:none }
+   330→
+   331→  /* ============ KERTAS A4 ============ */
+   332→  .meja{ padding:22px 10px 40px }
+   333→  .sheet{
+   334→    width:210mm; height:296.5mm; overflow:hidden;
+   335→    margin:0 auto 9mm; padding:11mm 12mm 8mm;
+   336→    background:var(--kertas); position:relative;
+   337→    display:flex; flex-direction:column;
+   338→    box-shadow:0 3px 16px rgba(74,55,40,.3), 0 0 0 1px rgba(74,55,40,.05);
+   339→  }
+   340→  .isi{ flex:1 1 auto; min-height:0; display:flex; flex-direction:column; justify-content:space-evenly }
+   341→  .hlm{ flex:0 0 auto; text-align:center; font-size:3.3mm; font-weight:700;
+   342→        color:rgba(74,55,40,.55); padding-top:1mm }
+   343→
+   344→  /* ============ KOP HALAMAN 1 ============ */
+   345→  .kop{ flex:0 0 auto; display:flex; justify-content:space-between; gap:5mm; align-items:flex-start }
+   346→  .kop-kiri{ padding-top:2mm }
+   347→  .judul{ font-size:12.2mm; font-weight:800; line-height:1.05; letter-spacing:.3mm; white-space:nowrap }
+   348→  .judul span{ display:inline-block }
+   349→  .judul .sp{ width:4.5mm }
+   350→  .judul .c1{ color:var(--koral);  transform:rotate(-5deg) translateY(-.4mm) }
+   351→  .judul .c2{ color:var(--oranye); transform:rotate(3deg) }
+   352→  .judul .c3{ color:var(--teal);   transform:rotate(-2deg) translateY(.5mm) }
+   353→  .judul .c4{ color:var(--biru);   transform:rotate(4deg) translateY(-.5mm) }
+   354→  .judul .c5{ color:var(--hijau);  transform:rotate(-3deg) }
+   355→  .judul .c6{ color:#E9679C;       transform:rotate(2deg) translateY(.4mm) }
+   356→  .sub{ font-size:4.3mm; font-weight:600; margin-top:1.8mm }
+   357→  .identitas{ display:flex; align-items:flex-end; gap:6mm; margin-top:4.2mm;
+   358→              font-size:4.1mm; font-weight:700 }
+   359→  .identitas .g{ display:inline-block; border-bottom:.55mm dotted var(--tinta);
+   360→                 height:4mm; margin-left:1.8mm; vertical-align:bottom }
+   361→  .gNama{ width:30mm } .gKelas{ width:14mm }
+   362→  .chip{ font-size:3.3mm; font-weight:700; background:var(--krem);
+   363→         border:.4mm solid rgba(74,55,40,.5); padding:.8mm 3mm; border-radius:999px;
+   364→         margin-left:auto; white-space:nowrap }
+   365→  .rel-garis{ flex:0 0 auto; margin-top:3.2mm }
+   366→  .rel-garis::before{ content:''; display:block; height:1.4mm; background:var(--tinta); border-radius:1mm }
+   367→  .rel-garis::after{ content:''; display:block; height:.7mm; margin-top:1.1mm; border-radius:1mm;
+   368→    background:repeating-linear-gradient(90deg, rgba(74,55,40,.5) 0 5mm, transparent 5mm 9mm) }
+   369→
+   370→  /* ============ PANEL CONTOH ============ */
+   371→  .contoh{ position:relative; flex:0 0 auto; background:#FFF8E8;
+   372→           border:.55mm solid var(--tinta); border-radius:4.5mm; padding:5mm 3.5mm 2.6mm }
+   373→  .badge{ position:absolute; top:-2.8mm; left:5mm; background:var(--tinta); color:var(--kertas);
+   374→          font-size:3.2mm; font-weight:800; letter-spacing:.6mm; padding:.6mm 3mm; border-radius:999px }
+   375→  .c-grid{ display:grid; grid-template-columns:repeat(5,max-content);
+   376→           column-gap:2.6mm; row-gap:1mm; align-items:center; justify-content:start }
+   377→  .panah{ display:grid; place-items:center }
+   378→  .panah svg{ width:3.6mm; height:auto }
+   379→  .jwb-mini{ width:11.5mm; height:8.6mm; border:.45mm solid var(--tinta); border-radius:2mm;
+   380→             background:var(--hijau); display:grid; place-items:center;
+   381→             font-size:5.2mm; font-weight:800; line-height:1 }
+   382→  .c-ket{ font-size:3.2mm; font-weight:600; color:rgba(74,55,40,.78); margin-top:1.8mm }
+   383→
+   384→  /* ============ KOP MINI HALAMAN 2 & 3 ============ */
+   385→  .mini-kop{ flex:0 0 auto; display:flex; justify-content:space-between; align-items:center;
+   386→             padding-bottom:1.6mm; border-bottom:.5mm dashed rgba(74,55,40,.4);
+   387→             font-size:3.7mm; font-weight:700; color:rgba(74,55,40,.85) }
+   388→  .mini-kop .kiri{ display:flex; align-items:center; gap:2.5mm }
+   389→  .mini-kop .loko-slot{ width:8.5mm }
+   390→  .mini-kop .g2{ display:inline-block; width:26mm; border-bottom:.5mm dotted rgba(74,55,40,.6);
+   391→                 height:3.4mm; vertical-align:bottom }
+   392→
+   393→  /* ============ BARIS SOAL & KERETA ============ */
+   394→  .soal{ flex:0 0 auto; height:28mm; display:flex; align-items:flex-start; gap:2.2mm;
+   395→         animation:masuk .5s cubic-bezier(.25,.9,.35,1.25) both }
+   396→  @keyframes masuk{ from{ opacity:0; transform:translateY(5mm) scale(.9) } }
+   397→  .no{ flex:0 0 auto; width:8.5mm; height:8.5mm; margin-top:6mm;
+   398→       border:.5mm solid var(--tinta); border-radius:50%; background:#fff;
+   399→       display:grid; place-items:center; font-size:4.6mm; font-weight:800 }
+   400→  .kereta{ position:relative; height:27.5mm; display:flex; align-items:flex-start; transition:transform .25s }
+   401→  .soal:hover .kereta{ transform:translateY(-.8mm) } /* hanya terasa di layar */
+   402→  .rel{ position:absolute; left:1mm; right:.5mm; top:23.4mm; height:2mm;
+   403→        background:var(--tinta); border-radius:1mm; z-index:0 }
+   404→
+   405→  .loko{ position:relative; width:21mm; flex:0 0 auto }
+   406→  .kereta .loko{ margin-right:5.2mm }
+   407→  .loko svg{ width:100%; height:auto; display:block }
+   408→  .kereta .loko::after{ /* kopling lokomotif ke gerbong pertama */
+   409→    content:''; position:absolute; right:-5.2mm; top:9.5mm;
+   410→    width:5.2mm; height:2mm; background:var(--tinta) }
+   411→  .asap{ animation:asapN 2.8s ease-in-out infinite }
+   412→  .asap.a2{ animation-delay:1.4s }
+   413→  @keyframes asapN{ 0%,100%{ transform:translateY(0); opacity:1 }
+   414→                    50%{ transform:translateY(-1.8px); opacity:.5 } }
+   415→  .loko-slot .loko{ width:100% }
+   416→  .loko-slot .loko::after{ display:none }
+   417→
+   418→  .gerbong{ position:relative; width:25mm; height:21mm; flex:0 0 auto; z-index:1;
+   419→            border:.6mm solid var(--tinta); border-radius:4mm 4mm 2.4mm 2.4mm }
+   420→  .kereta .gerbong + .gerbong{ margin-left:5.2mm }
+   421→  .kereta .gerbong + .gerbong::before{ /* kopling antar gerbong */
+   422→    content:''; position:absolute; left:-5.2mm; top:9.5mm;
+   423→    width:5.2mm; height:2mm; background:var(--tinta) }
+   424→  .win{ position:absolute; inset:2.5mm; background:var(--kertas);
+   425→        border:.45mm solid var(--tinta); border-radius:2.6mm;
+   426→        display:flex; align-items:center; justify-content:center }
+   427→  .ang{ font-size:11.5mm; font-weight:800; line-height:1; letter-spacing:-.3mm }
+   428→  .rd{ position:absolute; width:6.8mm; height:6.8mm; bottom:-3.9mm; left:2.6mm;
+   429→       background:var(--tinta); border-radius:50%; z-index:2 }
+   430→  .rd::after{ content:''; position:absolute; inset:2.1mm; background:var(--kertas); border-radius:50% }
+   431→  .rd.r{ left:auto; right:2.6mm }
+   432→
+   433→  /* warna gerbong */
+   434→  .w0{background:var(--kuning)} .w1{background:var(--teal)}  .w2{background:var(--koral)}
+   435→  .w3{background:var(--hijau)}  .w4{background:var(--biru)}  .w5{background:var(--oranye)}
+   436→  .w6{background:var(--pink)}
+   437→
+   438→  /* gerbong kosong = tempat menulis */
+   439→  .kosong{ background:#F5EFE3 }
+   440→  .kosong .win{ border-style:dashed; border-color:rgba(74,55,40,.65) }
+   441→  .kosong .win::after{ content:''; position:absolute; left:3mm; right:3mm; bottom:3mm;
+   442→                       border-bottom:.5mm dotted rgba(74,55,40,.4) }
+   443→  .jwb{ display:none; font-size:11.5mm; font-weight:800; line-height:1; color:#D9480F }
+   444→  body.kunci .jwb{ display:block }
+   445→  body.kunci .kosong .win{ background:var(--krem); border-style:solid; border-color:var(--tinta) }
+   446→  body.kunci .kosong .win::after{ display:none }
+   447→
+   448→  /* versi mini untuk panel contoh */
+   449→  .mini{ width:11.5mm; height:9.7mm; border-width:.45mm; border-radius:2.4mm 2.4mm 1.5mm 1.5mm }
+   450→  .mini .win{ inset:1.1mm; border-width:.4mm; border-radius:1.6mm }
+   451→  .mini .ang{ font-size:5.4mm; letter-spacing:0 }
+   452→  .mini .rd{ width:3.2mm; height:3.2mm; bottom:-1.8mm; left:1.7mm }
+   453→  .mini .rd.r{ right:1.7mm }
+   454→  .mini .rd::after{ inset:.95mm }
+   455→  .c-grid .mini + .mini::before{ width:2.6mm; left:-2.6mm; top:3.9mm; height:1.3mm; border-radius:.7mm }
+   456→  .tanya .win::after{ display:none }
+   457→  .tqm{ font-size:6mm; font-weight:800; color:#E8590C; line-height:1 }
+   458→
+   459→  /* ============ HADIAH DI HALAMAN TERAKHIR ============ */
+   460→  .hadiah{ flex:0 0 auto; min-height:40mm; margin-top:1.5mm;
+   461→           border:.7mm dashed var(--oranye); border-radius:5mm; background:#FFF8E8;
+   462→           display:flex; align-items:center; gap:8mm; padding:3mm 7mm }
+   463→  .hadiah .kiri{ flex:0 0 auto; text-align:center }
+   464→  .hadiah .kiri svg{ width:44mm; height:auto; display:block }
+   465→  .hadiah .kiri p{ font-size:3.6mm; font-weight:800; margin-top:.8mm }
+   466→  .hadiah .kanan{ flex:1 }
+   467→  .bintang{ display:flex; gap:3mm }
+   468→  .bintang svg{ width:10.5mm; height:10.5mm }
+   469→  .hadiah .kanan p{ font-size:3.9mm; font-weight:600; margin-top:1.8mm }
+   470→  .hadiah .kanan .paraf{ margin-top:2.4mm; font-size:3.7mm; font-weight:700 }
+   471→  .paraf .g{ display:inline-block; width:36mm; border-bottom:.55mm dotted var(--tinta);
+   472→             height:4mm; vertical-align:bottom; margin-left:1.5mm }
+   473→
+   474→  /* ============ WATERMARK LEMBAR KUNCI ============ */
+   475→  .wm{ display:none }
+   476→  body.kunci .wm{ display:grid; place-items:center; position:absolute; inset:0;
+   477→                  z-index:60; pointer-events:none }
+   478→  .wm b{ transform:rotate(-24deg); font-size:15mm; font-weight:800; letter-spacing:1.5mm;
+   479→         color:rgba(217,72,15,.12); border:.8mm solid rgba(217,72,15,.12);
+   480→         border-radius:6mm; padding:2mm 8mm; white-space:nowrap }
+   481→
+   482→  /* ============ CETAK / SIMPAN PDF ============
+   483→     Semua animasi dimatikan otomatis agar hasil print 100% statis */
+   484→  @page{ size:A4 portrait; margin:0 }
+   485→  @media print{
+   486→    *{ animation:none !important; transition:none !important }
+   487→    body{ background:#fff !important }
+   488→    .toolbar{ display:none !important }
+   489→    .meja{ padding:0 }
+   490→    .sheet{ margin:0; box-shadow:none; break-after:page; page-break-after:always }
+   491→    .sheet:last-of-type{ break-after:auto; page-break-after:auto }
+   492→  }
+   493→</style>
+   494→</head>
+   495→<body>
+   496→
+   497→<!-- ======================= BILAH ALAT ======================= -->
+   498→<aside class="toolbar">
+   499→  <div class="brand">
+   500→    <span class="loko-slot"></span>
+   501→    <div>
+   502→      <b>Kereta Angka</b>
+   503→      <small>Lembar latihan mengurutkan angka • TK A • 20 soal</small>
+   504→    </div>
+   505→  </div>
+   506→  <div class="aksi">
+   507→    <span class="toast" id="toast"></span>
+   508→    <button type="button" id="btnKunci">
+   509→      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+   510→      Kunci Jawaban
+   511→    </button>
+   512→    <button type="button" id="btnAcak">
+   513→      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"></path><path d="M21 3v6h-6"></path></svg>
+   514→      Acak Soal
+   515→    </button>
+   516→    <button type="button" id="btnCetak">
+   517→      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 8V3.5h10V8"></path><rect x="3.5" y="8" width="17" height="8.5" rx="2"></rect><rect x="7" y="13.5" width="10" height="7"></rect></svg>
+   518→      Cetak / Simpan PDF
+   519→    </button>
+   520→  </div>
+   521→</aside>
+   522→
+   523→<!-- ======================= HALAMAN 1 ======================= -->
+   524→<main class="meja">
+   525→<section class="sheet">
+   526→  <header class="kop">
+   527→    <div class="kop-kiri">
+   528→      <h1 class="judul" aria-label="Kereta Angka!">
+   529→        <span class="c1">K</span><span class="c2">e</span><span class="c3">r</span><span class="c4">e</span><span class="c5">t</span><span class="c6">a</span><span class="sp"></span><span class="c1">A</span><span class="c2">n</span><span class="c3">g</span><span class="c4">k</span><span class="c5">a</span><span class="c6">!</span>
+   530→      </h1>
+   531→      <p class="sub">Lengkapi angka yang hilang pada gerbong yang kosong!</p>
+   532→      <div class="identitas">
+   533→        <span>Nama<span class="g gNama"></span></span>
+   534→        <span>Kelas<span class="g gKelas"></span></span>
+   535→        <span class="chip">20 soal • Angka 1–29</span>
+   536→      </div>
+   537→    </div>
+   538→
+   539→    <!-- panel contoh: persis pola 16, _, 18, _, 20 -->
+   540→    <div class="contoh">
+   541→      <span class="badge">CONTOH</span>
+   542→      <div class="c-grid">
+   543→        <div class="gerbong mini w0 terisi"><span class="win"><span class="ang">16</span></span><i class="rd"></i><i class="rd r"></i></div>
+   544→        <div class="gerbong mini kosong tanya"><span class="win"><span class="tqm">?</span></span><i class="rd"></i><i class="rd r"></i></div>
+   545→        <div class="gerbong mini w1 terisi"><span class="win"><span class="ang">18</span></span><i class="rd"></i><i class="rd r"></i></div>
+   546→        <div class="gerbong mini kosong tanya"><span class="win"><span class="tqm">?</span></span><i class="rd"></i><i class="rd r"></i></div>
+   547→        <div class="gerbong mini w2 terisi"><span class="win"><span class="ang">20</span></span><i class="rd"></i><i class="rd r"></i></div>
+   548→        <span></span>
+   549→        <span class="panah"><svg viewBox="0 0 20 26" fill="none"><path d="M10 3v15M4 13l6 8 6-8" stroke="#F26D5B" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"></path></svg></span>
+   550→        <span></span>
+   551→        <span class="panah"><svg viewBox="0 0 20 26" fill="none"><path d="M10 3v15M4 13l6 8 6-8" stroke="#F26D5B" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"></path></svg></span>
+   552→        <span></span>
+   553→        <span></span><span class="jwb-mini">17</span><span></span><span class="jwb-mini">19</span><span></span>
+   554→      </div>
+   555→      <p class="c-ket">Tulis angka yang hilang pada gerbong kosong.</p>
+   556→    </div>
+   557→  </header>
+   558→  <div class="rel-garis"></div>
+   559→  <div class="isi" id="isi1"></div>
+   560→  <div class="hlm">Halaman 1 dari 3</div>
+   561→  <div class="wm"><b>LEMBAR KUNCI GURU</b></div>
+   562→</section>
+   563→
+   564→<!-- ======================= HALAMAN 2 ======================= -->
+   565→<section class="sheet">
+   566→  <div class="mini-kop">
+   567→    <span class="kiri"><span class="loko-slot"></span> Kereta Angka • Latihan Mengurutkan Angka</span>
+   568→    <span>Nama: <i class="g2"></i></span>
+   569→  </div>
+   570→  <div class="isi" id="isi2"></div>
+   571→  <div class="hlm">Halaman 2 dari 3</div>
+   572→  <div class="wm"><b>LEMBAR KUNCI GURU</b></div>
+   573→</section>
+   574→
+   575→<!-- ======================= HALAMAN 3 ======================= -->
+   576→<section class="sheet">
+   577→  <div class="mini-kop">
+   578→    <span class="kiri"><span class="loko-slot"></span> Kereta Angka • Latihan Mengurutkan Angka</span>
+   579→    <span>Nama: <i class="g2"></i></span>
+   580→  </div>
+   581→  <div class="isi" id="isi3"></div>
+   582→
+   583→  <footer class="hadiah">
+   584→    <div class="kiri">
+   585→      <!-- kereta garis luar untuk diwarnai anak -->
+   586→      <svg viewBox="0 0 232 84" fill="none">
+   587→        <g stroke="#4A3728" stroke-width="3" fill="#fff" stroke-linejoin="round">
+   588→          <rect x="14" y="16" width="12" height="18" rx="3"></rect>
+   589→          <rect x="4" y="30" width="60" height="40" rx="8"></rect>
+   590→          <rect x="44" y="14" width="20" height="24" rx="4"></rect>
+   591→          <rect x="64" y="46" width="12" height="6"></rect>
+   592→          <rect x="74" y="24" width="48" height="46" rx="6"></rect>
+   593→          <rect x="122" y="46" width="12" height="6"></rect>
+   594→          <rect x="132" y="24" width="48" height="46" rx="6"></rect>
+   595→        </g>
+   596→        <circle cx="54" cy="24" r="4.5" fill="#fff" stroke="#4A3728" stroke-width="3"></circle>
+   597→        <circle cx="20" cy="52" r="2.2" fill="#4A3728"></circle><circle cx="34" cy="52" r="2.2" fill="#4A3728"></circle>
+   598→        <path d="M18 59 Q27 66 36 59" stroke="#4A3728" stroke-width="2.6" stroke-linecap="round" fill="none"></path>
+   599→        <g fill="#fff" stroke="#4A3728" stroke-width="3">
+   600→          <circle cx="18" cy="74" r="8"></circle><circle cx="40" cy="74" r="8"></circle><circle cx="58" cy="74" r="8"></circle>
+   601→          <circle cx="86" cy="74" r="8"></circle><circle cx="110" cy="74" r="8"></circle>
+   602→          <circle cx="144" cy="74" r="8"></circle><circle cx="168" cy="74" r="8"></circle>
+   603→        </g>
+   604→        <g fill="#4A3728">
+   605→          <circle cx="18" cy="74" r="2.2"></circle><circle cx="40" cy="74" r="2.2"></circle><circle cx="58" cy="74" r="2.2"></circle>
+   606→          <circle cx="86" cy="74" r="2.2"></circle><circle cx="110" cy="74" r="2.2"></circle>
+   607→          <circle cx="144" cy="74" r="2.2"></circle><circle cx="168" cy="74" r="2.2"></circle>
+   608→        </g>
+   609→      </svg>
+   610→      <p>Warnai keretaku!</p>
+   611→    </div>
+   612→    <div class="kanan">
+   613→      <div class="bintang">
+   614→        <svg viewBox="0 0 24 24"><path d="M12 2.6l2.8 6 6.5.8-4.8 4.5 1.3 6.5L12 17.2l-5.8 3.2 1.3-6.5L2.7 9.4l6.5-.8z" fill="none" stroke="#4A3728" stroke-width="1.7" stroke-linejoin="round"></path></svg>
+   615→        <svg viewBox="0 0 24 24"><path d="M12 2.6l2.8 6 6.5.8-4.8 4.5 1.3 6.5L12 17.2l-5.8 3.2 1.3-6.5L2.7 9.4l6.5-.8z" fill="none" stroke="#4A3728" stroke-width="1.7" stroke-linejoin="round"></path></svg>
+   616→        <svg viewBox="0 0 24 24"><path d="M12 2.6l2.8 6 6.5.8-4.8 4.5 1.3 6.5L12 17.2l-5.8 3.2 1.3-6.5L2.7 9.4l6.5-.8z" fill="none" stroke="#4A3728" stroke-width="1.7" stroke-linejoin="round"></path></svg>
+   617→      </div>
+   618→      <p><b>Hebat!</b> Kamu sudah berhasil merangkai angka dengan urutan yang benar.</p>
+   619→      <p class="paraf">Paraf Guru / Orang Tua:<span class="g"></span></p>
+   620→    </div>
+   621→  </footer>
+   622→  <div class="hlm">Halaman 3 dari 3</div>
+   623→  <div class="wm"><b>LEMBAR KUNCI GURU</b></div>
+   624→</section>
+   625→</main>
+   626→
+   627→<script>
+   628→  /* ---------- Lokomotif (SVG, dipakai berulang) ---------- */
+   629→  const LOKO = `
+   630→  <div class="loko">
+   631→    <svg viewBox="0 0 92 114" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+   632→      <circle class="asap a1" cx="24" cy="7" r="4.5" fill="#EDE7DA" stroke="#4A3728" stroke-width="2.6"/>
+   633→      <circle class="asap a2" cx="36" cy="3.5" r="3" fill="#EDE7DA" stroke="#4A3728" stroke-width="2.6"/>
+   634→      <rect x="10" y="10" width="23" height="9" rx="4.5" fill="#43BFAE" stroke="#4A3728" stroke-width="3.4"/>
+   635→      <rect x="14" y="16" width="15" height="18" rx="3" fill="#43BFAE" stroke="#4A3728" stroke-width="3.4"/>
+   636→      <rect x="52" y="6" width="34" height="56" rx="7" fill="#FFD34D" stroke="#4A3728" stroke-width="3.6"/>
+   637→      <rect x="60" y="16" width="18" height="15" rx="3.5" fill="#FFFDF7" stroke="#4A3728" stroke-width="3.2"/>
+   638→      <rect x="6" y="30" width="80" height="62" rx="9" fill="#F26D5B" stroke="#4A3728" stroke-width="3.6"/>
+   639→      <rect x="6" y="74" width="80" height="7" fill="#FFD34D"/>
+   640→      <circle cx="25" cy="51" r="2.6" fill="#4A3728"/>
+   641→      <circle cx="39" cy="51" r="2.6" fill="#4A3728"/>
+   642→      <path d="M23 58 Q32 66 41 58" fill="none" stroke="#4A3728" stroke-width="3.2" stroke-linecap="round"/>
+   643→      <circle cx="16" cy="57" r="3.2" fill="#F9B8C8"/>
+   644→      <circle cx="48" cy="57" r="3.2" fill="#F9B8C8"/>
+   645→      <circle cx="22" cy="98" r="12" fill="#4A3728" stroke="#FFFDF7" stroke-width="3"/>
+   646→      <circle cx="46" cy="98" r="12" fill="#4A3728" stroke="#FFFDF7" stroke-width="3"/>
+   647→      <circle cx="70" cy="98" r="12" fill="#4A3728" stroke="#FFFDF7" stroke-width="3"/>
+   648→      <circle cx="22" cy="98" r="4" fill="#FFFDF7"/>
+   649→      <circle cx="46" cy="98" r="4" fill="#FFFDF7"/>
+   650→      <circle cx="70" cy="98" r="4" fill="#FFFDF7"/>
+   651→    </svg>
+   652→  </div>`;
+   653→  document.querySelectorAll('.loko-slot').forEach(el => el.innerHTML = LOKO);
+   654→
+   655→  /* ---------- Generator soal ---------- */
+   656→  const rand = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+   657→  const JUMLAH_WARNA = 7;
+   658→
+   659→  function buatSemuaSoal(){
+   660→    // 3 tingkat mengikuti halaman: mudah (1–10), sedang (7–20), menantang (17–29)
+   661→    const rentang  = [[1,6], [7,16], [17,25]];
+   662→    const terpakai = [new Set(), new Set(), new Set()];
+   663→    const bandOf   = no => no <= 6 ? 0 : no <= 14 ? 1 : 2;
+   664→    const soal = [];
+   665→
+   666→    for(let no = 1; no <= 20; no++){
+   667→      const b = bandOf(no);
+   668→      let mulai;
+   669→      do { mulai = rand(rentang[b][0], rentang[b][1]); } while(terpakai[b].has(mulai));
+   670→      terpakai[b].add(mulai); // semua soal mulai dari angka berbeda
+   671→
+   672→      // kotak kosong: posisi acak (ke-2/3/4). Contoh soal 1: 1 kotak sebagai pemanasan.
+   673→      // Jika 2 kotak, dipilih posisi ke-2 & ke-4 agar anak selalu punya "jembatan" angka.
+   674→      const kosong = (no === 1 || Math.random() < 0.5)
+   675→        ? [rand(1, 3)]
+   676→        : [1, 3];
+   677→
+   678→      soal.push({ no, mulai, kosong });
+   679→    }
+   680→    return soal;
+   681→  }
+   682→
+   683→  function keretaHTML(s, urut){
+   684→    const gerbong = Array.from({ length: 5 }, (_, i) => {
+   685→      const a = s.mulai + i;
+   686→      const w = 'w' + ((s.no + i) % JUMLAH_WARNA); // warna gerbong bergeser tiap soal
+   687→      if(s.kosong.includes(i)){
+   688→        return `<div class="gerbong ${w} kosong"><span class="win"><span class="jwb">${a}</span></span><i class="rd"></i><i class="rd r"></i></div>`;
+   689→      }
+   690→      return `<div class="gerbong ${w} terisi"><span class="win"><span class="ang">${a}</span></span><i class="rd"></i><i class="rd r"></i></div>`;
+   691→    }).join('');
+   692→
+   693→    return `<div class="soal" style="animation-delay:${urut * 55}ms">
+   694→        <span class="no">${s.no}</span>
+   695→        <div class="kereta">${LOKO}${gerbong}<span class="rel"></span></div>
+   696→      </div>`;
+   697→  }
+   698→
+   699→  function renderSemua(){
+   700→    const soal = buatSemuaSoal();
+   701→    let k = 0;
+   702→    document.getElementById('isi1').innerHTML = soal.slice(0, 6).map(s => keretaHTML(s, k++)).join('');
+   703→    document.getElementById('isi2').innerHTML = soal.slice(6, 14).map(s => keretaHTML(s, k++)).join('');
+   704→    document.getElementById('isi3').innerHTML = soal.slice(14, 20).map(s => keretaHTML(s, k++)).join('');
+   705→  }
+   706→
+   707→  /* ---------- Interaksi ---------- */
+   708→  let toastTimer;
+   709→  function tampilToast(pesan){
+   710→    const t = document.getElementById('toast');
+   711→    t.textContent = pesan;
+   712→    t.classList.add('show');
+   713→    clearTimeout(toastTimer);
+   714→    toastTimer = setTimeout(() => t.classList.remove('show'), 1900);
+   715→  }
+   716→
+   717→  const btnKunci = document.getElementById('btnKunci');
+   718→  btnKunci.addEventListener('click', () => {
+   719→    const aktif = document.body.classList.toggle('kunci');
+   720→    btnKunci.classList.toggle('on', aktif);
+   721→    tampilToast(aktif ? 'Kunci jawaban ditampilkan' : 'Kunci jawaban disembunyikan');
+   722→  });
+   723→
+   724→  document.getElementById('btnAcak').addEventListener('click', () => {
+   725→    renderSemua();
+   726→    tampilToast('Soal baru berhasil dibuat!');
+   727→  });
+   728→
+   729→  document.getElementById('btnCetak').addEventListener('click', () => window.print());
+   730→
+   731→  renderSemua();
+   732→</script>
+   733→
+   734→</body></html>
+   735→                        </body>
+   736→                </html>
+   737→

@@ -1,0 +1,852 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+:root {
+  --radius: 0.625rem;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* ===================================================================
+   KERETA ANGKA — Lembar latihan mengurutkan angka (TK A)
+   Styles untuk halaman / (src/app/page.tsx).
+   Dikunci ke palette coklat-tinta + warna-warna ceria, font Baloo 2.
+   =================================================================== */
+.kereta-page {
+  --tinta: #4a3728;
+  --kertas: #fffdf7;
+  --krem: #fff3d6;
+  --koral: #f26d5b;
+  --oranye: #f5a03c;
+  --kuning: #ffd34d;
+  --hijau: #7bc950;
+  --teal: #43bfae;
+  --biru: #5ba8d9;
+  --pink: #f78fb0;
+  --font-baloo: var(--font-baloo-2), "Segoe UI", sans-serif;
+  font-family: var(--font-baloo);
+  color: var(--tinta);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: #cde7f0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='220'%3E%3Cg fill='%23ffffff' opacity='.45'%3E%3Cellipse cx='62' cy='58' rx='46' ry='15'/%3E%3Cellipse cx='94' cy='50' rx='28' ry='12'/%3E%3Cellipse cx='228' cy='168' rx='50' ry='16'/%3E%3Cellipse cx='258' cy='160' rx='26' ry='11'/%3E%3C/g%3E%3C/svg%3E");
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+.kereta-page * {
+  box-sizing: border-box;
+}
+.kereta-page .meja {
+  flex: 1 1 auto;
+  padding: 22px 10px 40px;
+  overflow-x: auto;
+}
+
+/* ---- Bilah alat (tidak ikut tercetak) ---- */
+.kereta-page .toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 10px 20px;
+  background: rgba(255, 253, 247, 0.94);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  border-bottom: 1.5px solid rgba(74, 55, 40, 0.3);
+}
+.kereta-page .brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.kereta-page .brand .loko-slot {
+  width: 44px;
+}
+.kereta-page .brand b {
+  display: block;
+  font-size: 19px;
+  font-weight: 800;
+  line-height: 1.1;
+}
+.kereta-page .brand small {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: rgba(74, 55, 40, 0.72);
+}
+.kereta-page .aksi {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.kereta-page button.ka-btn {
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 14.5px;
+  color: var(--tinta);
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 16px;
+  border-radius: 13px;
+  border: 2px solid var(--tinta);
+  background: #fff;
+  box-shadow: 0 3px 0 var(--tinta);
+  cursor: pointer;
+  transition: transform 0.12s, box-shadow 0.12s, background 0.2s;
+}
+.kereta-page button.ka-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 0 var(--tinta);
+}
+.kereta-page button.ka-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 var(--tinta);
+}
+.kereta-page button.ka-btn svg {
+  width: 17px;
+  height: 17px;
+  flex: 0 0 auto;
+}
+.kereta-page #btnCetak {
+  background: var(--koral);
+  color: #fffdf7;
+}
+.kereta-page #btnKunci.on {
+  background: var(--kuning);
+}
+.kereta-page .toast {
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  background: #37a34a;
+  padding: 6px 13px;
+  border-radius: 999px;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: 0.3s;
+  pointer-events: none;
+}
+.kereta-page .toast.show {
+  opacity: 1;
+  transform: none;
+}
+
+/* ---- Kertas A4 ---- */
+.kereta-page .sheet {
+  width: 210mm;
+  height: 296.5mm;
+  overflow: hidden;
+  margin: 0 auto 9mm;
+  padding: 11mm 12mm 8mm;
+  background: var(--kertas);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 3px 16px rgba(74, 55, 40, 0.3),
+    0 0 0 1px rgba(74, 55, 40, 0.05);
+}
+.kereta-page .isi {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+}
+.kereta-page .hlm {
+  flex: 0 0 auto;
+  text-align: center;
+  font-size: 3.3mm;
+  font-weight: 700;
+  color: rgba(74, 55, 40, 0.55);
+  padding-top: 1mm;
+}
+
+/* ---- Kop halaman 1 ---- */
+.kereta-page .kop {
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: space-between;
+  gap: 5mm;
+  align-items: flex-start;
+}
+.kereta-page .kop-kiri {
+  padding-top: 2mm;
+}
+.kereta-page .judul {
+  font-size: 12.2mm;
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: 0.3mm;
+  white-space: nowrap;
+}
+.kereta-page .judul span {
+  display: inline-block;
+}
+.kereta-page .judul .sp {
+  width: 4.5mm;
+}
+.kereta-page .judul .c1 {
+  color: var(--koral);
+  transform: rotate(-5deg) translateY(-0.4mm);
+}
+.kereta-page .judul .c2 {
+  color: var(--oranye);
+  transform: rotate(3deg);
+}
+.kereta-page .judul .c3 {
+  color: var(--teal);
+  transform: rotate(-2deg) translateY(0.5mm);
+}
+.kereta-page .judul .c4 {
+  color: var(--biru);
+  transform: rotate(4deg) translateY(-0.5mm);
+}
+.kereta-page .judul .c5 {
+  color: var(--hijau);
+  transform: rotate(-3deg);
+}
+.kereta-page .judul .c6 {
+  color: #e9679c;
+  transform: rotate(2deg) translateY(0.4mm);
+}
+.kereta-page .sub {
+  font-size: 4.3mm;
+  font-weight: 600;
+  margin-top: 1.8mm;
+}
+.kereta-page .identitas {
+  display: flex;
+  align-items: flex-end;
+  gap: 6mm;
+  margin-top: 4.2mm;
+  font-size: 4.1mm;
+  font-weight: 700;
+}
+.kereta-page .identitas .g {
+  display: inline-block;
+  border-bottom: 0.55mm dotted var(--tinta);
+  height: 4mm;
+  margin-left: 1.8mm;
+  vertical-align: bottom;
+}
+.kereta-page .gNama {
+  width: 30mm;
+}
+.kereta-page .gKelas {
+  width: 14mm;
+}
+.kereta-page .chip {
+  font-size: 3.3mm;
+  font-weight: 700;
+  background: var(--krem);
+  border: 0.4mm solid rgba(74, 55, 40, 0.5);
+  padding: 0.8mm 3mm;
+  border-radius: 999px;
+  margin-left: auto;
+  white-space: nowrap;
+}
+.kereta-page .rel-garis {
+  flex: 0 0 auto;
+  margin-top: 3.2mm;
+}
+.kereta-page .rel-garis::before {
+  content: "";
+  display: block;
+  height: 1.4mm;
+  background: var(--tinta);
+  border-radius: 1mm;
+}
+.kereta-page .rel-garis::after {
+  content: "";
+  display: block;
+  height: 0.7mm;
+  margin-top: 1.1mm;
+  border-radius: 1mm;
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(74, 55, 40, 0.5) 0 5mm,
+    transparent 5mm 9mm
+  );
+}
+
+/* ---- Panel contoh ---- */
+.kereta-page .contoh {
+  position: relative;
+  flex: 0 0 auto;
+  background: #fff8e8;
+  border: 0.55mm solid var(--tinta);
+  border-radius: 4.5mm;
+  padding: 5mm 3.5mm 2.6mm;
+}
+.kereta-page .badge {
+  position: absolute;
+  top: -2.8mm;
+  left: 5mm;
+  background: var(--tinta);
+  color: var(--kertas);
+  font-size: 3.2mm;
+  font-weight: 800;
+  letter-spacing: 0.6mm;
+  padding: 0.6mm 3mm;
+  border-radius: 999px;
+}
+.kereta-page .c-grid {
+  display: grid;
+  grid-template-columns: repeat(5, max-content);
+  column-gap: 2.6mm;
+  row-gap: 1mm;
+  align-items: center;
+  justify-content: start;
+}
+.kereta-page .panah {
+  display: grid;
+  place-items: center;
+}
+.kereta-page .panah svg {
+  width: 3.6mm;
+  height: auto;
+}
+.kereta-page .jwb-mini {
+  width: 11.5mm;
+  height: 8.6mm;
+  border: 0.45mm solid var(--tinta);
+  border-radius: 2mm;
+  background: var(--hijau);
+  display: grid;
+  place-items: center;
+  font-size: 5.2mm;
+  font-weight: 800;
+  line-height: 1;
+}
+.kereta-page .c-ket {
+  font-size: 3.2mm;
+  font-weight: 600;
+  color: rgba(74, 55, 40, 0.78);
+  margin-top: 1.8mm;
+}
+
+/* ---- Kop mini halaman 2 & 3 ---- */
+.kereta-page .mini-kop {
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 1.6mm;
+  border-bottom: 0.5mm dashed rgba(74, 55, 40, 0.4);
+  font-size: 3.7mm;
+  font-weight: 700;
+  color: rgba(74, 55, 40, 0.85);
+}
+.kereta-page .mini-kop .kiri {
+  display: flex;
+  align-items: center;
+  gap: 2.5mm;
+}
+.kereta-page .mini-kop .loko-slot {
+  width: 8.5mm;
+}
+.kereta-page .mini-kop .g2 {
+  display: inline-block;
+  width: 26mm;
+  border-bottom: 0.5mm dotted rgba(74, 55, 40, 0.6);
+  height: 3.4mm;
+  vertical-align: bottom;
+}
+
+/* ---- Baris soal & kereta ---- */
+.kereta-page .soal {
+  flex: 0 0 auto;
+  height: 28mm;
+  display: flex;
+  align-items: flex-start;
+  gap: 2.2mm;
+  animation: masuk 0.5s cubic-bezier(0.25, 0.9, 0.35, 1.25) both;
+}
+@keyframes masuk {
+  from {
+    opacity: 0;
+    transform: translateY(5mm) scale(0.9);
+  }
+}
+.kereta-page .no {
+  flex: 0 0 auto;
+  width: 8.5mm;
+  height: 8.5mm;
+  margin-top: 6mm;
+  border: 0.5mm solid var(--tinta);
+  border-radius: 50%;
+  background: #fff;
+  display: grid;
+  place-items: center;
+  font-size: 4.6mm;
+  font-weight: 800;
+}
+.kereta-page .kereta {
+  position: relative;
+  height: 27.5mm;
+  display: flex;
+  align-items: flex-start;
+  transition: transform 0.25s;
+}
+.kereta-page .soal:hover .kereta {
+  transform: translateY(-0.8mm);
+}
+.kereta-page .rel {
+  position: absolute;
+  left: 1mm;
+  right: 0.5mm;
+  top: 23.4mm;
+  height: 2mm;
+  background: var(--tinta);
+  border-radius: 1mm;
+  z-index: 0;
+}
+
+.kereta-page .loko {
+  position: relative;
+  width: 21mm;
+  flex: 0 0 auto;
+}
+.kereta-page .kereta .loko {
+  margin-right: 5.2mm;
+}
+.kereta-page .loko svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.kereta-page .kereta .loko::after {
+  content: "";
+  position: absolute;
+  right: -5.2mm;
+  top: 9.5mm;
+  width: 5.2mm;
+  height: 2mm;
+  background: var(--tinta);
+}
+.kereta-page .asap {
+  animation: asapN 2.8s ease-in-out infinite;
+}
+.kereta-page .asap.a2 {
+  animation-delay: 1.4s;
+}
+@keyframes asapN {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  50% {
+    transform: translateY(-1.8px);
+    opacity: 0.5;
+  }
+}
+.kereta-page .loko-slot .loko {
+  width: 100%;
+}
+.kereta-page .loko-slot .loko::after {
+  display: none;
+}
+
+.kereta-page .gerbong {
+  position: relative;
+  width: 25mm;
+  height: 21mm;
+  flex: 0 0 auto;
+  z-index: 1;
+  border: 0.6mm solid var(--tinta);
+  border-radius: 4mm 4mm 2.4mm 2.4mm;
+}
+.kereta-page .kereta .gerbong + .gerbong {
+  margin-left: 5.2mm;
+}
+.kereta-page .kereta .gerbong + .gerbong::before {
+  content: "";
+  position: absolute;
+  left: -5.2mm;
+  top: 9.5mm;
+  width: 5.2mm;
+  height: 2mm;
+  background: var(--tinta);
+}
+.kereta-page .win {
+  position: absolute;
+  inset: 2.5mm;
+  background: var(--kertas);
+  border: 0.45mm solid var(--tinta);
+  border-radius: 2.6mm;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.kereta-page .ang {
+  font-size: 11.5mm;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.3mm;
+}
+.kereta-page .rd {
+  position: absolute;
+  width: 6.8mm;
+  height: 6.8mm;
+  bottom: -3.9mm;
+  left: 2.6mm;
+  background: var(--tinta);
+  border-radius: 50%;
+  z-index: 2;
+}
+.kereta-page .rd::after {
+  content: "";
+  position: absolute;
+  inset: 2.1mm;
+  background: var(--kertas);
+  border-radius: 50%;
+}
+.kereta-page .rd.r {
+  left: auto;
+  right: 2.6mm;
+}
+
+/* warna gerbong */
+.kereta-page .w0 {
+  background: var(--kuning);
+}
+.kereta-page .w1 {
+  background: var(--teal);
+}
+.kereta-page .w2 {
+  background: var(--koral);
+}
+.kereta-page .w3 {
+  background: var(--hijau);
+}
+.kereta-page .w4 {
+  background: var(--biru);
+}
+.kereta-page .w5 {
+  background: var(--oranye);
+}
+.kereta-page .w6 {
+  background: var(--pink);
+}
+
+/* gerbong kosong = tempat menulis */
+.kereta-page .kosong {
+  background: #f5efe3;
+}
+.kereta-page .kosong .win {
+  border-style: dashed;
+  border-color: rgba(74, 55, 40, 0.65);
+}
+.kereta-page .kosong .win::after {
+  content: "";
+  position: absolute;
+  left: 3mm;
+  right: 3mm;
+  bottom: 3mm;
+  border-bottom: 0.5mm dotted rgba(74, 55, 40, 0.4);
+}
+.kereta-page .jwb {
+  display: none;
+  font-size: 11.5mm;
+  font-weight: 800;
+  line-height: 1;
+  color: #d9480f;
+}
+.kereta-page.kunci .jwb {
+  display: block;
+}
+.kereta-page.kunci .kosong .win {
+  background: var(--krem);
+  border-style: solid;
+  border-color: var(--tinta);
+}
+.kereta-page.kunci .kosong .win::after {
+  display: none;
+}
+
+/* versi mini untuk panel contoh */
+.kereta-page .mini {
+  width: 11.5mm;
+  height: 9.7mm;
+  border-width: 0.45mm;
+  border-radius: 2.4mm 2.4mm 1.5mm 1.5mm;
+}
+.kereta-page .mini .win {
+  inset: 1.1mm;
+  border-width: 0.4mm;
+  border-radius: 1.6mm;
+}
+.kereta-page .mini .ang {
+  font-size: 5.4mm;
+  letter-spacing: 0;
+}
+.kereta-page .mini .rd {
+  width: 3.2mm;
+  height: 3.2mm;
+  bottom: -1.8mm;
+  left: 1.7mm;
+}
+.kereta-page .mini .rd.r {
+  right: 1.7mm;
+}
+.kereta-page .mini .rd::after {
+  inset: 0.95mm;
+}
+.kereta-page .c-grid .mini + .mini::before {
+  width: 2.6mm;
+  left: -2.6mm;
+  top: 3.9mm;
+  height: 1.3mm;
+  border-radius: 0.7mm;
+}
+.kereta-page .tanya .win::after {
+  display: none;
+}
+.kereta-page .tqm {
+  font-size: 6mm;
+  font-weight: 800;
+  color: #e8590c;
+  line-height: 1;
+}
+
+/* ---- Hadiah di halaman terakhir ---- */
+.kereta-page .hadiah {
+  flex: 0 0 auto;
+  min-height: 40mm;
+  margin-top: 1.5mm;
+  border: 0.7mm dashed var(--oranye);
+  border-radius: 5mm;
+  background: #fff8e8;
+  display: flex;
+  align-items: center;
+  gap: 8mm;
+  padding: 3mm 7mm;
+}
+.kereta-page .hadiah .kiri {
+  flex: 0 0 auto;
+  text-align: center;
+}
+.kereta-page .hadiah .kiri svg {
+  width: 44mm;
+  height: auto;
+  display: block;
+}
+.kereta-page .hadiah .kiri p {
+  font-size: 3.6mm;
+  font-weight: 800;
+  margin-top: 0.8mm;
+}
+.kereta-page .hadiah .kanan {
+  flex: 1;
+}
+.kereta-page .bintang {
+  display: flex;
+  gap: 3mm;
+}
+.kereta-page .bintang svg {
+  width: 10.5mm;
+  height: 10.5mm;
+}
+.kereta-page .hadiah .kanan p {
+  font-size: 3.9mm;
+  font-weight: 600;
+  margin-top: 1.8mm;
+}
+.kereta-page .hadiah .kanan .paraf {
+  margin-top: 2.4mm;
+  font-size: 3.7mm;
+  font-weight: 700;
+}
+.kereta-page .paraf .g {
+  display: inline-block;
+  width: 36mm;
+  border-bottom: 0.55mm dotted var(--tinta);
+  height: 4mm;
+  vertical-align: bottom;
+  margin-left: 1.5mm;
+}
+
+/* ---- Watermark lembar kunci ---- */
+.kereta-page .wm {
+  display: none;
+}
+.kereta-page.kunci .wm {
+  display: grid;
+  place-items: center;
+  position: absolute;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+}
+.kereta-page .wm b {
+  transform: rotate(-24deg);
+  font-size: 15mm;
+  font-weight: 800;
+  letter-spacing: 1.5mm;
+  color: rgba(217, 72, 15, 0.12);
+  border: 0.8mm solid rgba(217, 72, 15, 0.12);
+  border-radius: 6mm;
+  padding: 2mm 8mm;
+  white-space: nowrap;
+}
+
+/* ---- Cetak / Simpan PDF ---- */
+@page {
+  size: A4 portrait;
+  margin: 0;
+}
+@media print {
+  .kereta-page * {
+    animation: none !important;
+    transition: none !important;
+  }
+  .kereta-page {
+    background: #fff !important;
+  }
+  .kereta-page .toolbar {
+    display: none !important;
+  }
+  .kereta-page .meja {
+    padding: 0;
+    overflow: visible;
+  }
+  .kereta-page .sheet {
+    margin: 0;
+    box-shadow: none;
+    break-after: page;
+    page-break-after: always;
+  }
+  .kereta-page .sheet:last-of-type {
+    break-after: auto;
+    page-break-after: auto;
+  }
+}
+
+/* ---- Responsif: di layar kecil, izinkan scroll horizontal ---- */
+@media (max-width: 640px) {
+  .kereta-page .meja {
+    padding: 14px 4px 30px;
+  }
+}
+
