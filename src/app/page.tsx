@@ -270,32 +270,28 @@ function IkonCetak() {
 }
 
 /* ---------- Generator soal ----------
-   3 tingkat mengikuti halaman:
-   - mudah (1-6), sedang (7-16), menantang (17-25).
-   Band ditentukan lewat nomor soal (no <= 6 -> 0, dst.) */
+   Angka range 10 - 20.
+   Setiap kereta berisi 6 gerbong berurutan (mulai..mulai+5).
+   Nilai mulai dipilih antara 10 - 15 agar seluruh angka gerbong (mulai..mulai+5) ada di rentang 10–20.
+   Hanya 2 gerbong yang terisi (tersebar), sisanya (4 gerbong) kosong. */
 function buatSemuaSoal(): Soal[] {
-  const rentang: [number, number][] = [
-    [1, 6],
-    [7, 16],
-    [17, 25],
-  ];
-  const terpakai = [new Set<number>(), new Set<number>(), new Set<number>()];
-  const bandOf = (no: number) => (no <= 6 ? 0 : no <= 14 ? 1 : 2);
   const soal: Soal[] = [];
+  let lastMulai = -1;
 
   for (let no = 1; no <= 20; no++) {
-    const b = bandOf(no);
     let mulai: number;
     do {
-      mulai = rand(rentang[b][0], rentang[b][1]);
-    } while (terpakai[b].has(mulai));
-    terpakai[b].add(mulai);
+      mulai = rand(10, 15);
+    } while (mulai === lastMulai);
+    lastMulai = mulai;
 
-    // kotak kosong: posisi acak (ke-2/3/4). Untuk soal 1 atau 50% kemungkinan,
-    // hanya 1 kotak sebagai pemanasan. Jika 2 kotak, dipilih posisi ke-2 & ke-4
-    // agar anak selalu punya "jembatan" angka.
-    const kosong =
-      no === 1 || Math.random() < 0.5 ? [rand(1, 3)] : [1, 3];
+    // Pilih 2 indeks terisi (misal 1 dari [0..2] dan 1 dari [3..5]),
+    // sisanya 4 indeks menjadi gerbong kosong.
+    const terisi1 = rand(0, 2);
+    const terisi2 = rand(3, 5);
+    const kosong = [0, 1, 2, 3, 4, 5].filter(
+      (idx) => idx !== terisi1 && idx !== terisi2
+    );
 
     soal.push({ no, mulai, kosong });
   }
@@ -304,7 +300,7 @@ function buatSemuaSoal(): Soal[] {
 
 /* ---------- Sebuah baris kereta ---------- */
 function KeretaBaris({ s, urut }: { s: Soal; urut: number }) {
-  const gerbong = Array.from({ length: 5 }, (_, i) => {
+  const gerbong = Array.from({ length: 6 }, (_, i) => {
     const a = s.mulai + i;
     const w = "w" + ((s.no + i) % JUMLAH_WARNA);
     const kosong = s.kosong.includes(i);
@@ -342,7 +338,14 @@ function ContohPanel() {
       <div className="c-grid">
         <div className="gerbong mini w0 terisi">
           <span className="win">
-            <span className="ang">16</span>
+            <span className="ang">10</span>
+          </span>
+          <i className="rd" />
+          <i className="rd r" />
+        </div>
+        <div className="gerbong mini kosong tanya">
+          <span className="win">
+            <span className="tqm">?</span>
           </span>
           <i className="rd" />
           <i className="rd r" />
@@ -356,7 +359,7 @@ function ContohPanel() {
         </div>
         <div className="gerbong mini w1 terisi">
           <span className="win">
-            <span className="ang">18</span>
+            <span className="ang">13</span>
           </span>
           <i className="rd" />
           <i className="rd r" />
@@ -368,9 +371,9 @@ function ContohPanel() {
           <i className="rd" />
           <i className="rd r" />
         </div>
-        <div className="gerbong mini w2 terisi">
+        <div className="gerbong mini kosong tanya">
           <span className="win">
-            <span className="ang">20</span>
+            <span className="tqm">?</span>
           </span>
           <i className="rd" />
           <i className="rd r" />
@@ -379,16 +382,22 @@ function ContohPanel() {
         <span className="panah">
           <PanahSvg />
         </span>
-        <span />
         <span className="panah">
           <PanahSvg />
         </span>
         <span />
+        <span className="panah">
+          <PanahSvg />
+        </span>
+        <span className="panah">
+          <PanahSvg />
+        </span>
         <span />
-        <span className="jwb-mini">17</span>
+        <span className="jwb-mini">11</span>
+        <span className="jwb-mini">12</span>
         <span />
-        <span className="jwb-mini">19</span>
-        <span />
+        <span className="jwb-mini">14</span>
+        <span className="jwb-mini">15</span>
       </div>
       <p className="c-ket">Tulis angka yang hilang pada gerbong kosong.</p>
     </div>
@@ -422,7 +431,7 @@ function KopUtama() {
           <span>
             Kelas<span className="g gKelas" />
           </span>
-          <span className="chip">20 soal • Angka 1–29</span>
+          <span className="chip">20 soal • Angka 10–20</span>
         </div>
       </div>
 

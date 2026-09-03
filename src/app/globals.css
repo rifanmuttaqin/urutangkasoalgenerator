@@ -412,7 +412,7 @@
 }
 .kereta-page .c-grid {
   display: grid;
-  grid-template-columns: repeat(5, max-content);
+  grid-template-columns: repeat(6, max-content);
   column-gap: 2.6mm;
   row-gap: 1mm;
   align-items: center;
@@ -524,11 +524,11 @@
 
 .kereta-page .loko {
   position: relative;
-  width: 21mm;
+  width: 18mm;
   flex: 0 0 auto;
 }
 .kereta-page .kereta .loko {
-  margin-right: 5.2mm;
+  margin-right: 4mm;
 }
 .kereta-page .loko svg {
   width: 100%;
@@ -538,9 +538,9 @@
 .kereta-page .kereta .loko::after {
   content: "";
   position: absolute;
-  right: -5.2mm;
-  top: 9.5mm;
-  width: 5.2mm;
+  right: -4mm;
+  top: 8.5mm;
+  width: 4mm;
   height: 2mm;
   background: var(--tinta);
 }
@@ -570,47 +570,47 @@
 
 .kereta-page .gerbong {
   position: relative;
-  width: 25mm;
-  height: 21mm;
+  width: 21.5mm;
+  height: 19mm;
   flex: 0 0 auto;
   z-index: 1;
   border: 0.6mm solid var(--tinta);
-  border-radius: 4mm 4mm 2.4mm 2.4mm;
+  border-radius: 3.5mm 3.5mm 2.2mm 2.2mm;
 }
 .kereta-page .kereta .gerbong + .gerbong {
-  margin-left: 5.2mm;
+  margin-left: 4mm;
 }
 .kereta-page .kereta .gerbong + .gerbong::before {
   content: "";
   position: absolute;
-  left: -5.2mm;
-  top: 9.5mm;
-  width: 5.2mm;
+  left: -4mm;
+  top: 8.5mm;
+  width: 4mm;
   height: 2mm;
   background: var(--tinta);
 }
 .kereta-page .win {
   position: absolute;
-  inset: 2.5mm;
+  inset: 2mm;
   background: var(--kertas);
   border: 0.45mm solid var(--tinta);
-  border-radius: 2.6mm;
+  border-radius: 2.2mm;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 .kereta-page .ang {
-  font-size: 11.5mm;
+  font-size: 9.5mm;
   font-weight: 800;
   line-height: 1;
   letter-spacing: -0.3mm;
 }
 .kereta-page .rd {
   position: absolute;
-  width: 6.8mm;
-  height: 6.8mm;
-  bottom: -3.9mm;
-  left: 2.6mm;
+  width: 6mm;
+  height: 6mm;
+  bottom: -3.4mm;
+  left: 2mm;
   background: var(--tinta);
   border-radius: 50%;
   z-index: 2;
@@ -618,13 +618,13 @@
 .kereta-page .rd::after {
   content: "";
   position: absolute;
-  inset: 2.1mm;
+  inset: 1.8mm;
   background: var(--kertas);
   border-radius: 50%;
 }
 .kereta-page .rd.r {
   left: auto;
-  right: 2.6mm;
+  right: 2mm;
 }
 
 /* warna gerbong */
@@ -668,7 +668,7 @@
 }
 .kereta-page .jwb {
   display: none;
-  font-size: 11.5mm;
+  font-size: 9.5mm;
   font-weight: 800;
   line-height: 1;
   color: #d9480f;
